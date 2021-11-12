@@ -12,6 +12,8 @@ const questions = [
       "Add Employee",
       "Update Employee Role",
       "View All Departments",
+      "View All Roles",
+      "Add a department",
     ],
   },
 ];
@@ -25,6 +27,28 @@ const db = mysql.createConnection(
   },
   console.log(`Connected to the employees database.`)
 );
+
+const addDepartment = () => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "What is the department name",
+        name: "department",
+      },
+    ])
+    .then((res) => {
+      db.query(
+        "INSERT INTO department SET ?",
+        { name: res.department },
+        function (err) {
+          if (err) throw err;
+          console.table(res);
+          employeeTracker();
+        }
+      );
+    });
+};
 
 // async function main() {
 //   console.log("Calling Main");
@@ -62,6 +86,18 @@ const employeeTracker = () => {
           console.table(results);
           employeeTracker();
         });
+      }
+      if (A1.manage === "View All Roles") {
+        db.query(
+          "SELECT role.id, role.title, role.salary, department.name AS department FROM role INNER JOIN department ON department.id = role.department_id",
+          function (err, results) {
+            console.table(results);
+            employeeTracker();
+          }
+        );
+      }
+      if (A1.manage === "Add a department") {
+        addDepartment();
       }
     })
     .catch((err) => {
