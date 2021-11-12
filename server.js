@@ -7,7 +7,12 @@ const questions = [
     type: "list",
     name: "manage",
     message: "What would you like to do?",
-    choices: ["View All Employees", "Add Employee", "Update Employee Role"],
+    choices: [
+      "View All Employees",
+      "Add Employee",
+      "Update Employee Role",
+      "View All Departments",
+    ],
   },
 ];
 
@@ -43,9 +48,19 @@ const employeeTracker = () => {
     .prompt(questions)
     .then((A1) => {
       if (A1.manage === "View All Employees") {
-        console.log("Hello babyyyyyyyyyyy");
-        db.query("SELECT * FROM employee", function (err, results) {
+        db.query(
+          "SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager FROM employee INNER JOIN role on role.id = employee.role_id INNER JOIN department on department.id = role.department_id left join employee e on employee.manager_id = e.id;",
+          function (err, results) {
+            console.table(results);
+            console.log(err);
+            employeeTracker();
+          }
+        );
+      }
+      if (A1.manage === "View All Departments") {
+        db.query("SELECT * FROM department", function (err, results) {
           console.table(results);
+          employeeTracker();
         });
       }
     })
