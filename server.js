@@ -10,7 +10,7 @@ const questions = [
     message: "What would you like to do?",
     choices: [
       "View All Employees",
-      "Add Employee",
+      "Add employee",
       "Update Employee Role",
       "View All Departments",
       "View All Roles",
@@ -33,46 +33,65 @@ const db = mysql.createConnection(
 
 //Add Employee
 const addEmployee = () => {
-  db.query("SELECT * FROM department;", function (err, res) {
-    let departments = [];
+  let managers = [];
+  let roles = [];
+  db.query("SELECT * FROM employee;", function (err, res) {
     res.forEach((result) =>
-      departments.push({ name: result.name, value: result.id })
+      managers.push({
+        name: result.first_name + " " + result.last_name,
+        value: result.id,
+      })
     );
-    inquirer
-      .prompt([
-        {
-          type: "input",
-          message: "What is the role name?",
-          name: "name",
-        },
-        {
-          type: "input",
-          message: "What is the role salary?",
-          name: "salary",
-        },
-        {
-          type: "list",
-          name: "department",
-          message: "What is the department for this role?",
-          choices: departments,
-        },
-      ])
-      .then((res) => {
-        db.query(
-          "INSERT INTO role SET ?",
-          {
-            title: res.name,
-            salary: res.salary,
-            department_id: res.department,
-          },
-          function (err) {
-            if (err) throw err;
-            console.table(res);
-            employeeTracker();
-          }
-        );
-      });
   });
+  db.query("SELECT * FROM role;", function (err, res) {
+    res.forEach((result) =>
+      roles.push({
+        name: result.title,
+        value: result.id,
+      })
+    );
+  });
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "What is the employee first name?",
+        name: "firstname",
+      },
+      {
+        type: "input",
+        message: "What is the last name?",
+        name: "lastname",
+      },
+      {
+        type: "list",
+        name: "manager",
+        message: "Who is manager for this employee?",
+        choices: managers,
+      },
+      {
+        type: "list",
+        name: "role",
+        message: "What is the role for this employee?",
+        choices: roles,
+      },
+    ])
+    .then((res) => {
+      db.query(
+        "INSERT INTO employee SET ?",
+        {
+          first_name: res.firstname,
+          last_name: res.lastname,
+          role_id: res.role,
+          manager_id: res.manager,
+        },
+        function (err) {
+          if (err) throw err;
+          console.table(res);
+          employeeTracker();
+        }
+      );
+    });
 };
 
 //Add Role
@@ -82,7 +101,6 @@ const addRole = () => {
     res.forEach((result) =>
       departments.push({ name: result.name, value: result.id })
     );
-    return;
   });
   inquirer
     .prompt([
