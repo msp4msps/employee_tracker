@@ -31,8 +31,8 @@ const db = mysql.createConnection(
   console.log(`Connected to the employees database.`)
 );
 
-//Add Role
-const addRole = () => {
+//Add Employee
+const addEmployee = () => {
   db.query("SELECT * FROM department;", function (err, res) {
     let departments = [];
     res.forEach((result) =>
@@ -73,6 +73,51 @@ const addRole = () => {
         );
       });
   });
+};
+
+//Add Role
+const addRole = () => {
+  let departments = [];
+  db.query("SELECT * FROM department;", function (err, res) {
+    res.forEach((result) =>
+      departments.push({ name: result.name, value: result.id })
+    );
+    return;
+  });
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "What is the role name?",
+        name: "name",
+      },
+      {
+        type: "input",
+        message: "What is the role salary?",
+        name: "salary",
+      },
+      {
+        type: "list",
+        name: "department",
+        message: "What is the department for this role?",
+        choices: departments,
+      },
+    ])
+    .then((res) => {
+      db.query(
+        "INSERT INTO role SET ?",
+        {
+          title: res.name,
+          salary: res.salary,
+          department_id: res.department,
+        },
+        function (err) {
+          if (err) throw err;
+          console.table(res);
+          employeeTracker();
+        }
+      );
+    });
 };
 
 //Add a Department
@@ -134,6 +179,9 @@ const employeeTracker = () => {
       }
       if (A1.manage === "Add a role") {
         addRole();
+      }
+      if (A1.manage === "Add employee") {
+        addEmployee();
       }
     })
     .catch((err) => {
