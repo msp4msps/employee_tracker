@@ -94,6 +94,60 @@ const addEmployee = () => {
     });
 };
 
+//Update Employee
+
+const updateEmployee = () => {
+  let employee = [];
+  let roles = [];
+  db.query("SELECT * FROM employee;", function (err, res) {
+    res.forEach((result) =>
+      employee.push({
+        name: result.first_name + " " + result.last_name,
+        value: result.id,
+      })
+    );
+  });
+  db.query("SELECT * FROM role;", function (err, res) {
+    res.forEach((result) =>
+      roles.push({
+        name: result.title,
+        value: result.id,
+      })
+    );
+  });
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        message: "What is the employee first name?",
+        name: "firstname",
+      },
+      {
+        type: "list",
+        name: "employee",
+        message: "Who is employee?",
+        choices: employee,
+      },
+      {
+        type: "list",
+        name: "role",
+        message: "What is the new role for this employee?",
+        choices: roles,
+      },
+    ])
+    .then((res) => {
+      db.query(
+        "UPDATE employee SET role_id = ? WHERE id = ?;",
+        [res.role, res.employee],
+        function (err) {
+          if (err) throw err;
+          console.table(res);
+          employeeTracker();
+        }
+      );
+    });
+};
+
 //Add Role
 const addRole = () => {
   let departments = [];
@@ -200,6 +254,9 @@ const employeeTracker = () => {
       }
       if (A1.manage === "Add employee") {
         addEmployee();
+      }
+      if (A1.manage === "Update Employee Role") {
+        updateEmployee();
       }
     })
     .catch((err) => {
