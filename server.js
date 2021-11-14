@@ -1,7 +1,18 @@
 const inquirer = require("inquirer");
-const table = require("console.table");
+require("console.table");
 const mysql = require("mysql2");
 require("dotenv").config();
+
+//Create DB Connection
+const db = mysql.createConnection(
+  {
+    host: "localhost",
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+  },
+  console.log(`Connected to the employees database.`)
+);
 
 //List Initial Questions
 const questions = [
@@ -21,16 +32,59 @@ const questions = [
   },
 ];
 
-//Create DB Connection
-const db = mysql.createConnection(
-  {
-    host: "localhost",
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: process.env.DB_NAME,
-  },
-  console.log(`Connected to the employees database.`)
-);
+///Initialize Inquirer Prompt
+const employeeTracker = () => {
+  inquirer
+    .prompt(questions)
+    .then((A1) => {
+      //Get all Employees
+      if (A1.manage === "View All Employees") {
+        //View All Employees
+        db.query(
+          "SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name AS Department, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager FROM employee INNER JOIN role on role.id = employee.role_id INNER JOIN department on department.id = role.department_id left join employee e on employee.manager_id = e.id;",
+          function (err, results) {
+            console.table(results);
+            console.log(err);
+            employeeTracker();
+          }
+        );
+      }
+      if (A1.manage === "View All Departments") {
+        //View All Departments
+        db.query("SELECT * FROM department", function (err, results) {
+          console.table(results);
+          employeeTracker();
+        });
+      }
+      if (A1.manage === "View All Roles") {
+        //Query all Roles
+        db.query(
+          "SELECT role.id, role.title, role.salary, department.name AS department FROM role INNER JOIN department ON department.id = role.department_id",
+          function (err, results) {
+            console.table(results);
+            employeeTracker();
+          }
+        );
+      }
+      if (A1.manage === "Add a department") {
+        addDepartment();
+      }
+      if (A1.manage === "Add a role") {
+        addRole();
+      }
+      if (A1.manage === "Add employee") {
+        addEmployee();
+      }
+      if (A1.manage === "Update Employee Role") {
+        updateEmployee();
+      }
+    })
+    .catch((err) => {
+      if (err) {
+        throw err;
+      }
+    });
+};
 
 //Add Employee
 const addEmployee = () => {
@@ -213,57 +267,6 @@ const addDepartment = () => {
           employeeTracker();
         }
       );
-    });
-};
-
-///Initialize Inquirer Prompt
-const employeeTracker = () => {
-  inquirer
-    .prompt(questions)
-    .then((A1) => {
-      //Get all Employees
-      if (A1.manage === "View All Employees") {
-        db.query(
-          "SELECT employee.first_name, employee.last_name, role.title, role.salary, department.name, CONCAT(e.first_name, ' ' ,e.last_name) AS Manager FROM employee INNER JOIN role on role.id = employee.role_id INNER JOIN department on department.id = role.department_id left join employee e on employee.manager_id = e.id;",
-          function (err, results) {
-            console.table(results);
-            console.log(err);
-            employeeTracker();
-          }
-        );
-      }
-      if (A1.manage === "View All Departments") {
-        db.query("SELECT * FROM department", function (err, results) {
-          console.table(results);
-          employeeTracker();
-        });
-      }
-      if (A1.manage === "View All Roles") {
-        db.query(
-          "SELECT role.id, role.title, role.salary, department.name AS department FROM role INNER JOIN department ON department.id = role.department_id",
-          function (err, results) {
-            console.table(results);
-            employeeTracker();
-          }
-        );
-      }
-      if (A1.manage === "Add a department") {
-        addDepartment();
-      }
-      if (A1.manage === "Add a role") {
-        addRole();
-      }
-      if (A1.manage === "Add employee") {
-        addEmployee();
-      }
-      if (A1.manage === "Update Employee Role") {
-        updateEmployee();
-      }
-    })
-    .catch((err) => {
-      if (err) {
-        throw err;
-      }
     });
 };
 
