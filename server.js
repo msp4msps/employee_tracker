@@ -1,6 +1,7 @@
 const inquirer = require("inquirer");
 const table = require("console.table");
 const mysql = require("mysql2");
+require("dotenv").config();
 
 //List Initial Questions
 const questions = [
@@ -24,9 +25,9 @@ const questions = [
 const db = mysql.createConnection(
   {
     host: "localhost",
-    user: "nross",
-    password: "Summ3r1969!1",
-    database: "employees_db",
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
   },
   console.log(`Connected to the employees database.`)
 );
